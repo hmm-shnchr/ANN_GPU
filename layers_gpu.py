@@ -1,6 +1,47 @@
 import cupy as np
 
 
+def activation_function(act_func):
+    if act_func == "relu":
+        return Relu()
+    if act_func == "sigmoid":
+        return Sigmoid()
+    if act_func == "tanh":
+        return Tanh()
+    if act_func == "mish":
+        return Mish()
+    else:
+        return None
+
+
+def loss_function(loss_func):
+    if loss_func == "MSE_RE":
+        return MSE_RelativeError()
+    if loss_func == "MSE_AE":
+        return MSE_AbsoluteError()
+    else:
+        return None
+
+
+class Affine:
+    def __init__( self, W, b ):
+        self.W = W
+        self.b = b
+        self.x = None
+        self.dW = None
+        self.db = None
+
+    def forward( self, x, is_training ):
+        self.x = x
+        return np.dot( x, self.W ) + self.b
+
+    def backward( self, dout ):
+        dx = np.dot( dout, self.W.T )
+        self.dW = np.dot( self.x.T, dout )
+        self.db = np.sum( dout, axis = 0 )
+        return dx
+
+
 class Relu:
     def __init__( self ):
         self.mask = None
@@ -40,23 +81,21 @@ class Tanh:
         return dx
 
 
-class Affine:
-    def __init__( self, W, b ):
-        self.W = W
-        self.b = b
+class Mish:
+    def __init__(self):
         self.x = None
-        self.dW = None
-        self.db = None
+        self.expx = None
 
-    def forward( self, x, is_training ):
+    def forward(self, x, is_training):
         self.x = x
-        return np.dot( x, self.W ) + self.b
+        self.expx = np.exp(x)
+        return self.x * np.tanh(np.log(1.0 + self.expx))
 
-    def backward( self, dout ):
-        dx = np.dot( dout, self.W.T )
-        self.dW = np.dot( self.x.T, dout )
-        self.db = np.sum( dout, axis = 0 )
-        return dx
+    def backward(self, dout):
+        diff = 4.0 * (self.x + 1.0 + self.expx**2) + self.expx**3 + (4.0 * self.x + 6.0) * self.expx
+        diff *= self.expx
+        diff /= (2.0 * self.expx + self.expx**2 + 2.0)**2
+        return dout * diff
 
 
 class Identity:
@@ -67,84 +106,6 @@ class Identity:
         return x
 
     def backward( self, dout ):
-        return dout
-
-
-class MAE_sqrt:
-    def __init__(self):
-        self.err = None
-        self.batch_size = None
-
-    def forward(self, y, t):
-        self.mask = ((y-t) < 0)
-        self.err = np.sqrt(np.abs(y-t))
-        self.batch_size = float(y.shape[0])
-        return np.sum(self.err)/self.batch_size
-
-    def backward(self, dout = 1):
-        dout /= 2.0*self.err*self.batch_size
-        dout[mask] *= -1.0
-        return dout/(2.0*self.err*self.batch_size)
-
-class MAE:
-    def __init__(self):
-        self.err = None
-        self.batch_size = None
-
-    def forward(self, y, t):
-        self.err = y-t
-        self.batch_size = float(y.shape[0])
-        return np.sum(np.abs(self.err))/self.batch_size
-
-    def backward(self, dout = 1):
-        mask = (self.err < 0)
-        dout = np.ones_like(self.err)
-        dout[mask] *= -1
-        return dout/self.batch_size
-
-
-class MAE_log:
-    def __init__(self):
-        self.y = None
-        self.t = None
-        self.batch_size = None
-
-    def forward(self, y, t):
-        ae = np.abs(y-t)
-        mask = (ae == 0)
-        ae[mask] = 1e-10
-        self.y = y
-        self.t = t
-        self.batch_size = float(y.shape[0])
-        error = np.sum(np.log(ae))/(2.0*self.batch_size)
-        return error
-
-    def backward(self, dout = 1):
-        dout = dout/(self.batch_size*np.abs(self.y-self.t))
-        return dout
-
-
-class MSE_log:
-    def __init__( self ):
-        self.y = None
-        self.t = None
-        self.batch_size = None
-
-    def mse( self, y, t ):
-        error = 0.5 * np.sum( ( np.log( y / t ) ) ** 2 ) / float( self.batch_size )
-        return error
-
-    def forward( self, y, t ):
-        mask = ( y == 0 )
-        y[ mask ] = 1e-10
-        self.y = y
-        self.t = t
-        self.batch_size = y.shape[0]
-        loss = self.mse( y, t )
-        return loss
-
-    def backward( self, dout = 1 ):
-        dout = ( np.log( self.y / self.t ) ) / ( self.y * self.batch_size )
         return dout
 
 
@@ -189,31 +150,6 @@ class MSE_AbsoluteError:
     def backward(self, dout = 1):
         dout = 2.0*(self.y - self.t) / float(self.y.shape[0])
         return dout
-
-
-class CrossEntropyError:
-    def __init__( self ):
-        self.loss = None
-        self.y = None
-        self.t = None
-
-    def _cross_entropy_error( self, y, t ):
-        batch_size = y.shape[0]
-        error = -np.sum( t * np.log( y + 1e-7 ) ) / float( batch_size )
-
-        return error
-
-    def forward( self, y, t ):
-        self.y = y
-        self.t = t
-        self.loss = self._cross_entropy_error( y, t )
-
-        return self.loss
-
-    def backward( self, dout = 1 ):
-        batch_size = self.t.shape[0]
-
-        return ( self.t / ( self.y + 1e-7 ) ) / float( batch_size )
 
 
 class BatchNormalization:
