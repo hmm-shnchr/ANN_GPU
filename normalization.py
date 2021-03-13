@@ -24,7 +24,7 @@ class Normalization:
         if self.norm_format == "Normalization":
             dataset_normed = self.__normalize(cp.deepcopy(dataset))
         if self.norm_format == "Standardization":
-            dataset_normed = self.__standardization(cp.deepcopy(dataset))
+            dataset_normed = self.__standardize(cp.deepcopy(dataset))
         if self.norm_format == "None":
             dataset_normed = self.__none(cp.deepcopy(dataset))
         return dataset_normed
@@ -33,7 +33,7 @@ class Normalization:
         if self.norm_format == "Normalization":
             dataset_inv = self.__inv_normalize(cp.deepcopy(dataset_normed))
         if self.norm_format == "Standardization":
-            dataset_inv = self.__standardization(cp.deepcopy(dataset_normed))
+            dataset_inv = self.__standardize(cp.deepcopy(dataset_normed))
         if self.norm_format == "None":
             dataset_inv = self.__none(cp.deepcopy(dataset_normed))
         return dataset_inv
@@ -72,7 +72,7 @@ class Normalization:
             stddev[m_key] = 0
             for param in dataset[m_key]:
                 mean[m_key] += np.sum(param)
-                denominator += param.size()
+                denominator += param.size
             for param in dataset[m_key]:
                 stddev[m_key] += np.sum((param - mean[m_key])**2)
             stddev[m_key] = np.sqrt(stddev[m_key] / denominator)
