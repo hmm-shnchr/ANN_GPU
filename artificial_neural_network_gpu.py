@@ -47,6 +47,10 @@ class ArtificialNeuralNetwork:
             else:
                 train_input_, train_output_ = np.concatenate([train_input_, train_input[m_key]], axis = 0), np.concatenate([train_output_, train_output[m_key]], axis = 0)
                 test_input_, test_output_ = np.concatenate([test_input_, test_input[m_key]], axis = 0), np.concatenate([test_output_, test_output[m_key]], axis = 0)
+        train_mask = (train_output_ == 0.0)
+        test_mask = (test_output_ == 0.0)
+        train_output_[train_mask] += 1e-7
+        test_output_[test_mask] += 1e-7
         print("Make a train/test dataset.")
         print("Train dataset size : {}\nTest dataset size : {}".format(train_input_.shape[0], test_input_.shape[0]))
         ##Define the optimizer.

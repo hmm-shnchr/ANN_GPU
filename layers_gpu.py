@@ -11,6 +11,7 @@ def activation_function(act_func):
     if act_func == "mish":
         return Mish()
     else:
+        print("{} is not defined.".format(act_func))
         return None
 
 
@@ -20,6 +21,7 @@ def loss_function(loss_func):
     if loss_func == "MSE_AE":
         return MSE_AbsoluteError()
     else:
+        print("{} is not defined.".format(loss_func))
         return None
 
 
@@ -234,23 +236,3 @@ class BatchNormalization:
         self.dbeta = dbeta
 
         return dx
-
-
-def activation_function(act_func):
-    if act_func == "relu":
-        return Relu()
-    if act_func == "sigmoid":
-        return Sigmoid()
-    if act_func == "tanh":
-        return Tanh()
-    else:
-        return None
-
-
-def loss_function(loss_func):
-    if loss_func == "MSE_RE":
-        return MSE_RelativeError()
-    if loss_func == "MSE_AE":
-        return MSE_AbsoluteError()
-    else:
-        return None

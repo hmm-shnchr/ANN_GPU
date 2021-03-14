@@ -109,10 +109,9 @@ def plot_histogram_machine_learning_models(is_normed, interp, xlim = [1e-3, 1e+1
             ax_hist.legend(handler1 + handler2, label1 + label2, loc = loc, borderaxespad = 0., fontsize = int(fontsize * 0.6))
         else:
             ax_hist.legend(loc = loc, fontsize = int(fontsize * 0.6))
-        title_ = title
         if is_normed:
-            title_ += "({}_normed)".format(m_key[11:16])
+            title_ = "({}_normed)".format(m_key[11:16])
         else:
-            title_ += "({})".format(m_key[11:16])
+            title_ = "({})".format(m_key[11:16])
         plt.title(title_, fontsize = fontsize)
         plt.show()
