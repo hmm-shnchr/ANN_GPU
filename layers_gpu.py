@@ -10,6 +10,8 @@ def activation_function(act_func):
         return Tanh()
     if act_func == "mish":
         return Mish()
+    if act_func == "tanhexp":
+        return TanhExp()
     else:
         print("{} is not defined.".format(act_func))
         return None
@@ -98,6 +100,18 @@ class Mish:
         diff *= self.expx
         diff /= (2.0 * self.expx + self.expx**2 + 2.0)**2
         return dout * diff
+
+
+class TanhExp:
+    def __init__(self):
+        self.x = None
+
+    def forward(self, x, is_training):
+        self.x = x
+        return x * np.tanh(np.exp(x))
+
+    def backward(self, dout):
+        return dout * (np.tanh(np.exp(self.x)) - self.x * np.exp(self.x) * (np.tanh(np.exp(self.x))**2 - 1.0))
 
 
 class Identity:
