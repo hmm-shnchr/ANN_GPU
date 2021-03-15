@@ -41,6 +41,11 @@ class ArtificialNeuralNetwork:
             RMT_test[m_key] = ReshapeMergerTree()
             train_input[m_key], train_output[m_key] = RMT_train[m_key].make_dataset(train[m_key], self.input_size, self.output_size)
             test_input[m_key], test_output[m_key] = RMT_test[m_key].make_dataset(test[m_key], self.input_size, self.output_size)
+            if is_epoch_in_each_mlist:
+                train_mask = (train_output[m_key] == 0.0)
+                test_mask = (test_output[m_key] == 0.0)
+                train_output[m_key][train_mask] += 1e-7
+                test_output[m_key][test_mask] += 1e-7
             if train_input_ is None:
                 train_input_, train_output_ = cp.deepcopy(train_input[m_key]), cp.deepcopy(train_output[m_key])
                 test_input_, test_output_ = cp.deepcopy(test_input[m_key]), cp.deepcopy(test_output[m_key])
