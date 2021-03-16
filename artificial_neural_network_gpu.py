@@ -72,12 +72,11 @@ class ArtificialNeuralNetwork:
         for i in range(iter_num):
             ##Make a mini batch.
             batch_mask = np.random.choice(batch_mask_arange, batch_size)
-            #batch_input, batch_output = train_input_[batch_mask, :], train_output_[batch_mask, :]
             batch_input, batch_output = cupy.asarray(train_input_[batch_mask, :]), cupy.asarray(train_output_[batch_mask, :])
             ##Update the self.network.params with grads.
             grads = self.network.gradient(batch_input, batch_output, is_training = True)
             params_network = self.network.params
-            optimizer.update(params_network, grads, i)
+            optimizer.update(params_network, grads)
             ##When the iteration i reaches a multiple of iter_per_epoch,
             ##Save loss_values, train/test_accuracy_value of the self.network to self.loss_val, self.train_acc, self.test_acc.
             if i % iter_per_epoch == 0:
@@ -91,6 +90,7 @@ class ArtificialNeuralNetwork:
                         self.test_acc[m_key].append(test_acc)
                 else:
                     loss_val = self.network.loss(cupy.asarray(train_input_), cupy.asarray(train_output_), is_training = False)
+                    print(loss_val)
                     self.loss_val.append(loss_val)
                     train_acc = self.network.accuracy(cupy.asarray(train_input_), cupy.asarray(train_output_), is_training = False)
                     self.train_acc.append(train_acc)

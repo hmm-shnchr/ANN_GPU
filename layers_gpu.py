@@ -28,48 +28,48 @@ def loss_function(loss_func):
 
 
 class Affine:
-    def __init__( self, W, b ):
+    def __init__(self, W, b):
         self.W = W
         self.b = b
         self.x = None
         self.dW = None
         self.db = None
 
-    def forward( self, x, is_training ):
+    def forward(self, x, is_training):
         self.x = x
-        return np.dot( x, self.W ) + self.b
+        return np.dot(x, self.W) + self.b
 
-    def backward( self, dout ):
-        dx = np.dot( dout, self.W.T )
-        self.dW = np.dot( self.x.T, dout )
-        self.db = np.sum( dout, axis = 0 )
+    def backward(self, dout):
+        dx = np.dot(dout, self.W.T)
+        self.dW = np.dot(self.x.T, dout)
+        self.db = np.sum(dout, axis = 0)
         return dx
 
 
 class Relu:
-    def __init__( self ):
+    def __init__(self):
         self.mask = None
-    def forward( self, x, is_training ):
-        self.mask = ( x <= 0 ) # 0以下の要素をTrue
-        x[self.mask] = 0 # Trueの要素を0
+
+    def forward(self, x, is_training):
+        self.mask = (x <= 0)
+        x[self.mask] = 0
         return x
 
-    def backward( self, dout ):
+    def backward(self, dout):
         dout[self.mask] = 0
         return dout
 
 
 class Sigmoid:
-    def __init__( self ):
+    def __init__(self):
         self.out = None
 
-    def forward( self, x, is_training ):
-        self.out = 1 / ( 1 + np.exp( -x ) )
+    def forward(self, x, is_training):
+        self.out = 1 / (1 + np.exp(-x))
         return self.out
 
-    def backward( self, dout ):
-        dx = dout * (1.0 - self.out ) * self.out
-        return dx
+    def backward(self, dout):
+        return dout * (1.0 - self.out) * self.out
 
 
 class Tanh:
@@ -81,8 +81,7 @@ class Tanh:
         return self.out
 
     def backward(self, dout):
-        dx = dout*(1.0 - self.out**2)
-        return dx
+        return dout * (1.0 - self.out**2)
 
 
 class Mish:
@@ -115,10 +114,7 @@ class TanhExp:
 
 
 class Identity:
-    def __init__( self ):
-        self.out = None
-
-    def forward( self, x, is_training ):
+    def forward(self, x, is_training):
         return x
 
     def backward( self, dout ):
@@ -126,27 +122,17 @@ class Identity:
 
 
 class MSE_RelativeError:
-    def __init__( self ):
+    def __init__(self):
         self.y = None
         self.t = None
 
-    def mse( self, y, t ):
-        diff = ( y - t ) / t
-        error = np.sum( diff * diff ) / float(y.shape[0])
+    def forward(self, y, t):
+        self.y, self.t = y, t
+        error = (y - t) / t
+        return np.mean(error**2)
 
-        return error
-
-    def forward( self, y, t ):
-        self.y = y
-        self.t = t
-        loss = self.mse( y, t )
-
-        return loss
-
-    def backward( self, dout = 1 ):
-        dout = 2.0 * ( ( self.y / self.t ) - 1.0 ) / ( self.t * self.y.shape[0] )
-
-        return dout
+    def backward(self, dout = 1.0):
+        return dout * (2.0 * (self.y - self.t) / self.t**2) / float(self.y.size)
 
 
 class MSE_AbsoluteError:
@@ -154,18 +140,14 @@ class MSE_AbsoluteError:
         self.y = None
         self.t = None
 
-    def abserr( self,y, t):
-        err = np.sum((y-t)**2) / float(y.shape[0])
-        return err
-
     def forward(self, y, t):
         self.y = y
         self.t = t
-        return self.abserr(y, t)
+        error = (y - t)
+        return np.mean(error**2)
 
     def backward(self, dout = 1):
-        dout = 2.0*(self.y - self.t) / float(self.y.shape[0])
-        return dout
+        return dout * 2.0 * (self.y - self.t) / float(self.y.size)
 
 
 class BatchNormalization:
