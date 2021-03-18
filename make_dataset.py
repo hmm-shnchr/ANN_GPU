@@ -18,7 +18,7 @@ def make_dataset(m_list, p_kind, h_param, param, ext_data, acc_sf, input_size, o
                     unity_size = input_size + output_size
                     surplus_size = parameter[start_i:].size % unity_size
                     add_size = unity_size - surplus_size + input_size
-                    if (start_i - add_size) >= 0
+                    if (start_i - add_size) >= 0:
                         start_i -= add_size
             if p_kind in ["x", "y", "z"]:
                 ##If p_kind is coordinate, use relative value of sub-halo to host-halo.
