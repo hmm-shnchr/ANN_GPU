@@ -1,6 +1,6 @@
 ##Extract the data to be used as dataset(data type is double-dictionary).
 ##Data structure of the dataset is that axis1 is host-halo(ex:MW039, MW038), axis2 is sub-halo.
-def make_dataset(m_list, p_kind, h_param, param, ext_data, acc_sf):
+def make_dataset(m_list, p_kind, h_param, param, ext_data, acc_sf, input_size, output_size):
     dataset = {}
     for m_key in m_list:
         dataset[m_key] = []
@@ -14,6 +14,12 @@ def make_dataset(m_list, p_kind, h_param, param, ext_data, acc_sf):
                     continue
                 elif ext_data == "After_acc":
                     start_i = acc_sf[m_key][idx]
+                    ##Use entire data of after accretion in machine learning.
+                    unity_size = input_size + output_size
+                    surplus_size = parameter[start_i:].size % unity_size
+                    add_size = unity_size - surplus_size + input_size
+                    if (start_i - add_size) >= 0
+                        start_i -= add_size
             if p_kind in ["x", "y", "z"]:
                 ##If p_kind is coordinate, use relative value of sub-halo to host-halo.
                 data = parameter[start_i:]
